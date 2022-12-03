@@ -5,14 +5,14 @@ export function reactive(data) {
   //proxy代理
   //返回代理对象
   return new Proxy(data, {
-    get(target, key) {
+    get(target, key, receiver) {
       track(target, key)
       //返回值
-      return target[key]
+      return Reflect.get(target, key, receiver)
     },
-    set(target, key, value) {
+    set(target, key, value, receiver) {
       //先修改
-      target[key] = value
+      Reflect.set(target, key, value, receiver)
       //再通知所有副作用函数
       trigger(target, key)
       //必须返回一个布尔值
