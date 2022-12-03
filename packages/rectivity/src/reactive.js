@@ -1,6 +1,9 @@
 import {getActiveEffect} from './effect'
 
 let bucket = new WeakMap() //用于存储
+
+const ITERATE_KEY = Symbol() // for in 操作的key
+
 export function reactive(data) {
   //proxy代理
   //返回代理对象
@@ -11,12 +14,33 @@ export function reactive(data) {
       return Reflect.get(target, key, receiver)
     },
     set(target, key, value, receiver) {
+      // 如果属性不存在，则说明是在添加新属性，否则是设置已有属性
+      const type = Object.prototype.hasOwnProperty.call(target, key) ? 'SET' : 'ADD'
       //先修改
       Reflect.set(target, key, value, receiver)
       //再通知所有副作用函数
-      trigger(target, key)
+      trigger(target, key, type)
       //必须返回一个布尔值
       return true
+    },
+    has(target, key) {
+      track(target, key)
+      return Reflect.has(target, key)
+    },
+    ownKeys(target) {
+      track(target, ITERATE_KEY)
+      return Reflect.ownKeys(target)
+    },
+    deleteProperty(target, key) {
+      // 检查被操作的属性是否是对象自己的属性
+      const hadKey = Object.prototype.hasOwnProperty.call(target, key)
+      // 使用 Reflect.deleteProperty 完成属性的删除
+      const res = Reflect.deleteProperty(target, key)
+      if (res && hadKey) {
+        // 只有当被删除的属性是对象自己的属性并且成功删除时，才触发更新
+        trigger(target, key, 'DELETE')
+      }
+      return res
     }
   })
 }
@@ -42,18 +66,32 @@ export function track(target, key) {
   // console.log('effect run')
 }
 
-export function trigger(target, key) {
+export function trigger(target, key, type) {
   let deps = bucket.get(target)
   if (!deps) return
-  let effects = deps.get(key)
+  // 普通相关联的副作用函数
+  const effects = deps.get(key)
 
   let effectToRun = new Set()
+  // 常规关联的副作用函数添加
   effects && effects.forEach(effectFn => {
     // 如果 trigger 触发执行的副作用函数与当前正在执行的副作用函数相同，则不触发执行
     if (effectFn !== getActiveEffect()) { // 新增
       effectToRun.add(effectFn)
     }
   })
+  // 将与 ITERATE_KEY 相关联的副作用函数也添加到 effectsToRun
+  if(type === 'ADD' || type === 'DELETE') {
+    // 取得与 ITERATE_KEY 相关联的副作用函数
+    const iterateEffects = deps.get(ITERATE_KEY)
+    iterateEffects && iterateEffects.forEach(effectFn => {
+      if (effectFn !== getActiveEffect()) {
+        effectToRun.add(effectFn)
+      }
+    })
+  }
+
+
   effectToRun.forEach(effectFn => {
     if(effectFn.options.scheduler) {
       effectFn.options.scheduler(effectFn)
