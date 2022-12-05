@@ -2,30 +2,51 @@ import { getActiveEffect, ITERATE_KEY } from './effect'
 
 let bucket = new WeakMap() //用于存储
 
-export function reactive(data) {
-  //proxy代理
-  //返回代理对象
+export function createReactive(obj, shallowRef = false) {
+  return new Proxy(obj, {
+    get(target, key, receiver) {
+      if(key === 'raw') return target
+      const res = Reflect.get(target, key, receiver)
+      track(target, key)
+      // 如果是浅响应，则直接返回
+      if(shallowRef) return res
+      if (typeof res === 'object' && res !== null) {
+        return reactive(res)
+      }
+      return res
+    }
+  })
+}
+
+export function reactive(data, isShallow= false) {
   return new Proxy(data, {
     get(target, key, receiver) {
       if(key === 'raw') return target
+
       track(target, key)
-      //返回值
-      return Reflect.get(target, key, receiver)
+
+      const res = Reflect.get(target, key, receiver)
+      // 如果是浅响应，则直接返回
+      if(isShallow) return res
+      // 深响应，则直接递归
+      if (typeof res === 'object' && res !== null) {
+        return reactive(res)
+      }
+      return res
     },
     set(target, key, value, receiver) {
+      const oldValue = target[key]
       // 如果属性不存在，则说明是在添加新属性，否则是设置已有属性
       const type = Object.prototype.hasOwnProperty.call(target, key) ? 'SET' : 'ADD'
       //先修改
-      Reflect.set(target, key, value, receiver)
+      const res = Reflect.set(target, key, value, receiver)
       //再通知所有副作用函数
      if(target === receiver.raw) {
-       if(target[key] !== value) {
+       if(oldValue !== value) {
          trigger(target, key, type)
        }
      }
-
-      //必须返回一个布尔值
-      return true
+      return res
     },
     has(target, key) {
       track(target, key)

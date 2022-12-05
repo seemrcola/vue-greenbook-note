@@ -6,6 +6,7 @@ describe('响应式测试', () => {
     /*基本测试测试用例*/
     let myname
     let proxyData = reactive({name: 'seemr'})
+
     effect(
       //这个函数相当于是一个执行修改操作的用户函数
       () => {
@@ -37,7 +38,7 @@ describe('响应式测试', () => {
     proxyData.name = 'cola'
     expect(myname).toBe('cola')
 
-    proxyData.age = 18 
+    proxyData.age = 18
     expect(myage).toBe(0)
 
     proxyData2.height = 1.80
@@ -55,7 +56,7 @@ describe('响应式测试', () => {
     let myname:string | undefined
     let proxyData = reactive({name: 'seemr',ifName: true})
     let count = 0
-  
+
     effect(
       () => {
         count ++
@@ -98,7 +99,7 @@ describe('响应式测试', () => {
         effect( () => {
           console.log('inner effect run')
           temp1 = proxyData.name
-        } ) 
+        } )
         console.log('outer effect run')
         temp2 = proxyData.age
       }
