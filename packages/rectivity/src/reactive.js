@@ -2,23 +2,7 @@ import { getActiveEffect, ITERATE_KEY } from './effect'
 
 let bucket = new WeakMap() //用于存储
 
-export function createReactive(obj, shallowRef = false) {
-  return new Proxy(obj, {
-    get(target, key, receiver) {
-      if(key === 'raw') return target
-      const res = Reflect.get(target, key, receiver)
-      track(target, key)
-      // 如果是浅响应，则直接返回
-      if(shallowRef) return res
-      if (typeof res === 'object' && res !== null) {
-        return reactive(res)
-      }
-      return res
-    }
-  })
-}
-
-export function reactive(data, isShallow= false) {
+export function createReactive(data, isShallow = false) {
   return new Proxy(data, {
     get(target, key, receiver) {
       if(key === 'raw') return target
@@ -41,11 +25,11 @@ export function reactive(data, isShallow= false) {
       //先修改
       const res = Reflect.set(target, key, value, receiver)
       //再通知所有副作用函数
-     if(target === receiver.raw) {
-       if(oldValue !== value) {
-         trigger(target, key, type)
-       }
-     }
+      if(target === receiver.raw) {
+        if(oldValue !== value) {
+          trigger(target, key, type)
+        }
+      }
       return res
     },
     has(target, key) {
