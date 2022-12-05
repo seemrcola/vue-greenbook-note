@@ -1,6 +1,7 @@
 let activeEffect
 // effect 栈
 const effectStack = [] // 新增
+export const ITERATE_KEY = Symbol() // for in 操作的key
 
 export function getActiveEffect() {
   return activeEffect

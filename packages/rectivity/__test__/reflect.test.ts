@@ -38,13 +38,8 @@ describe('reactive缺陷测试', () => {
 
     it('reactive test: for in 运算', () => {
         let count = 0
-        let obj = {
-            foo: 1,
-            get bar() {
-                return this.foo
-            }
-        }
-        let obj2 = {...obj}
+        let obj = { foo: 1,}
+        let obj2 = { test : 100 }
         let p = reactive(obj)
         let p2 = reactive(obj2)
         effect(() => {

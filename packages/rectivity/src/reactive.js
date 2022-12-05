@@ -1,14 +1,13 @@
-import {getActiveEffect} from './effect'
+import { getActiveEffect, ITERATE_KEY } from './effect'
 
 let bucket = new WeakMap() //用于存储
-
-const ITERATE_KEY = Symbol() // for in 操作的key
 
 export function reactive(data) {
   //proxy代理
   //返回代理对象
   return new Proxy(data, {
     get(target, key, receiver) {
+      if(key === 'raw') return target
       track(target, key)
       //返回值
       return Reflect.get(target, key, receiver)
@@ -19,7 +18,12 @@ export function reactive(data) {
       //先修改
       Reflect.set(target, key, value, receiver)
       //再通知所有副作用函数
-      trigger(target, key, type)
+     if(target === receiver.raw) {
+       if(target[key] !== value) {
+         trigger(target, key, type)
+       }
+     }
+
       //必须返回一个布尔值
       return true
     },
