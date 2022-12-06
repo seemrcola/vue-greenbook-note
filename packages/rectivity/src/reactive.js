@@ -2,19 +2,24 @@ import { getActiveEffect, ITERATE_KEY } from './effect'
 
 let bucket = new WeakMap() //用于存储
 
-export function createReactive(data, isShallow = false) {
+export function createReactive(data, isShallow = false, isReadonly = false) {
   return new Proxy(data, {
     get(target, key, receiver) {
       if(key === 'raw') return target
-
-      track(target, key)
-
+      if(isReadonly) {
+        console.warn(`property ${key} is readonly`)
+        return true
+      }
+      //只有非只读才会追踪
+      if(!isReadonly) {
+        track(target, key)
+      }
       const res = Reflect.get(target, key, receiver)
       // 如果是浅响应，则直接返回
       if(isShallow) return res
       // 深响应，则直接递归
       if (typeof res === 'object' && res !== null) {
-        return reactive(res)
+        return isReadonly ? readonly(res) : reactive(res)
       }
       return res
     },
@@ -41,6 +46,10 @@ export function createReactive(data, isShallow = false) {
       return Reflect.ownKeys(target)
     },
     deleteProperty(target, key) {
+      if(isReadonly) {
+        console.warn(`property ${key} is readonly`)
+        return true
+      }
       // 检查被操作的属性是否是对象自己的属性
       const hadKey = Object.prototype.hasOwnProperty.call(target, key)
       // 使用 Reflect.deleteProperty 完成属性的删除
@@ -112,5 +121,18 @@ export function trigger(target, key, type) {
   // effects && effects.forEach(effectFn => effectFn())
 }
 
+export function reactive(data) {
+  return createReactive(data)
+}
+export function shallowReactive(data) {
+  return createReactive(data, true)
+}
 
+export function readonly(data) {
+  return createReactive(data, false, true)
+}
+
+export function shallowReadonly(data) {
+  return createReactive(data, true, true)
+}
 

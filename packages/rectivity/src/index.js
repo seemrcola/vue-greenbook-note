@@ -1,10 +1,11 @@
-import { createReactive } from "./reactive";
+export {
+    createReactive,
+    reactive,
+    hallowReactive,
+    readonly,
+    shallowReadonly
+} from "./reactive";
 export { effect } from "./effect";
 export { computed } from './computed'
-export function reactive(data) {
-    return createReactive(data)
-}
-export function shallowReactive(data) {
-    return createReactive(data, true)
-}
+
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { reactive, effect, computed } from '../src/index.js'
+import { reactive, effect, computed, readonly } from '../src/index.js'
 
 describe('响应式测试', () => {
   it('test reactive: 基本测试', () => {
@@ -114,20 +114,12 @@ describe('响应式测试', () => {
    * 如 obj.pointer += 1
   */
 
-  it('computed test: computed但是嵌套测试', () => {
-    let count = 0
-    let bar:any
-    let proxyData = reactive({ bar:1, foo:2 })
-    const sumRes = computed(() => proxyData.foo + proxyData.bar)
-    effect(() => {
-      console.log('我执行了')
-      count++
-       // 在该副作用函数中读取 sumRes.value
-      console.log('result:', sumRes.value)
-    })
-    // 修改 obj.foo 的值
-    proxyData.foo++
-    expect(count).toBe(2)
+  it('computed test: readonly测试', () => {
+    let obj = {
+      name: 100
+    }
+    const p = readonly(obj)
+    p.name = 999
   })
 })
 
