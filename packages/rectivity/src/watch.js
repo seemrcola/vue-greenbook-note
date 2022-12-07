@@ -38,6 +38,7 @@ export function watch(source, cb, options = {}) {
 }
 
 function traverse(value, seen = new Set()) {
+    // seen用来去重，没什么别的用
     // 如果要读取的数据是原始值，或者已经被读取过了，那么什么都不做
     if (typeof value !== 'object' || value === null || seen.has(value))
         return

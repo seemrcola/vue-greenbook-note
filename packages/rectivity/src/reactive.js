@@ -48,7 +48,15 @@ export function createReactive(data, isShallow = false, isReadonly = false) {
       return Reflect.has(target, key)
     },
     ownKeys(target) {
-      track(target, ITERATE_KEY)
+      // 数组
+      if(Array.isArray(target)) {
+        track(target, ITERATE_KEY)
+      }
+      // 对象
+      else {
+        track(target, ITERATE_KEY)
+      }
+
       return Reflect.ownKeys(target)
     },
     deleteProperty(target, key) {
