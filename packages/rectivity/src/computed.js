@@ -1,5 +1,5 @@
 import { effect } from "./effect.js";
-import { track, trigger } from './reactive'
+import { track, trigger } from './observer'
 
 export function computed(getter) {
     let value
