@@ -33,9 +33,10 @@ export function trigger(target, key, type, newVal) {
     let effectToRun = new Set()
     //数组
     if(Array.isArray(target)) {
-        todoArrayTrigger(key, newVal, {
-            deps, effectToRun, type
-        })
+        todoArrayTrigger(
+            key, newVal,
+            { deps, effectToRun, type }
+        )
     }
     //对象
     else {

@@ -9,8 +9,8 @@ export function createReactive(data, isShallow = false, isReadonly = false) {
         console.warn(`property ${key} is readonly`)
         return true
       }
-      //只有非只读才会追踪
-      if(!isReadonly) {
+      //只有非只读才会追踪 同时我们页不追踪symbol属性
+      if(!isReadonly && typeof key !== 'symbol') {
         track(target, key)
       }
       const res = Reflect.get(target, key, receiver)
@@ -50,7 +50,7 @@ export function createReactive(data, isShallow = false, isReadonly = false) {
     ownKeys(target) {
       // 数组
       if(Array.isArray(target)) {
-        track(target, ITERATE_KEY)
+        track(target, 'length')
       }
       // 对象
       else {

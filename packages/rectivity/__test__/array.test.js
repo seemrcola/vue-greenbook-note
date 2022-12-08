@@ -12,4 +12,34 @@ describe('reactive代理数组', () => {
         arr[1] = 'bar'
         expect(count).toBe(2)
     })
+
+    it('reactive test: for in', () => {
+        let count = 0
+        const arr = reactive([1,2,3,4])
+        effect(() => {
+            count++
+            for(let i in arr) void 0
+         })
+        arr.length = 8
+        expect(count).toBe(2)
+    })
+
+    it('reactive test: for of', () => {
+        let count = 0
+        const arr = reactive([1,2,3,4])
+        effect(() => {
+            count++
+            for(let i of arr) void 0
+        })
+        arr.length = 8
+        expect(count).toBe(2)
+    })
+
+    it('reactive test: includes方法', () => {
+        const obj = {}
+        const arr = reactive([obj])
+
+        console.log(arr.includes(arr[0]))  // false
+        expect(arr.includes(arr[0])).toBe(true)
+    })
 })
