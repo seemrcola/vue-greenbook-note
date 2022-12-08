@@ -38,7 +38,12 @@ describe('reactive代理数组', () => {
     it('reactive test: includes方法', () => {
         const obj = {}
         const arr = reactive([obj])
-
+        /**
+         * 目标：
+         * arr[0]取值时会返回一个proxy(arr[0])
+         * includes遍历的时候，又会取一次，再得到一个proxy对象
+         * 此时两个proxy对象并不一致，所以会返回false
+         * */
         console.log(arr.includes(arr[0]))  // false
         expect(arr.includes(arr[0])).toBe(true)
     })

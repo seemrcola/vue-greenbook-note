@@ -1,10 +1,16 @@
 import { track, trigger } from './observer'
 import { ITERATE_KEY } from './effect'
+import { arrayInstrumentations } from './rewrite.array'
+const reactiveMap = new Map()
 
 export function createReactive(data, isShallow = false, isReadonly = false) {
   return new Proxy(data, {
     get(target, key, receiver) {
       if(key === 'raw') return target
+      //重写数组方法
+      if(Array.isArray(target) && arrayInstrumentations.hasOwnProperty(key)) {
+        return Reflect.get(arrayInstrumentations, key, receiver)
+      }
       if(isReadonly) {
         console.warn(`property ${key} is readonly`)
         return true
@@ -22,6 +28,7 @@ export function createReactive(data, isShallow = false, isReadonly = false) {
       }
       return res
     },
+
     set(target, key, value, receiver) {
       const oldValue = target[key]
       // 如果属性不存在，则说明是在添加新属性，否则是设置已有属性
@@ -43,10 +50,12 @@ export function createReactive(data, isShallow = false, isReadonly = false) {
       }
       return res
     },
+
     has(target, key) {
       track(target, key)
       return Reflect.has(target, key)
     },
+
     ownKeys(target) {
       // 数组
       if(Array.isArray(target)) {
@@ -59,6 +68,7 @@ export function createReactive(data, isShallow = false, isReadonly = false) {
 
       return Reflect.ownKeys(target)
     },
+
     deleteProperty(target, key) {
       if(isReadonly) {
         console.warn(`property ${key} is readonly`)
@@ -78,7 +88,12 @@ export function createReactive(data, isShallow = false, isReadonly = false) {
 }
 
 export function reactive(data) {
-  return createReactive(data)
+  // 优先通过原始对象 obj 寻找之前创建的代理对象，如果找到了，直接返回已有 的代理对象
+  const existionProxy = reactiveMap.get(data)
+  if (existionProxy) return existionProxy
+  const proxy =  createReactive(data)
+  reactiveMap.set(data, proxy)
+  return proxy
 }
 export function shallowReactive(data) {
   return createReactive(data, true)
