@@ -1,4 +1,5 @@
 import { reactive } from './reactive'
+//单个
 export function toRef(obj, key) {
     const wrapper = {
         get value() {
@@ -10,7 +11,7 @@ export function toRef(obj, key) {
     }
     return wrapper
 }
-
+//多个
 export function toRefs(obj) {
     const ret = {}
     for(let prop in obj) {
