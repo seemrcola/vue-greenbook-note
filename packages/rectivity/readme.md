@@ -13,3 +13,7 @@
 ### ref实现
 见 ref.md
 
+### 每一章学完之后的代码
+每一个大章节学完之后，我都会写一个  mini-xxx  
+如 mini-reactive mini-renderer mini-compiler,最终写成一个mini-vue
+
