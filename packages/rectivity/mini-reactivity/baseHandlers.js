@@ -4,8 +4,8 @@ import { isObject } from "./utils.js";
 import { reactive } from "./reactive.js";
 
 function createGetter(isShallow) {
-    return function get(target, key) {
-        const res = target[key]
+    return function get(target, key, receiver) {
+        const res = Reflect.get(target, key, receiver)
         track(target, 'get', key)
         if(isObject(res)) {
             return isShallow ? res : reactive(res)
@@ -13,8 +13,8 @@ function createGetter(isShallow) {
         return res
     }
 }
-function set(target, key, val) {
-    target[key] = val
+function set(target, key, val, receiver) {
+    Reflect.set(target, key, val, receiver)
     trigger(target, 'set', key, val)
     return true
 }
