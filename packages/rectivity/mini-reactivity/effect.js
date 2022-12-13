@@ -14,12 +14,14 @@
 const targetMap = new WeakMap()
 
 let activeEffect = null
+const effectStack = []
 
-export function effect(fn) {
+export function effect(fn, options = {}) {
     const effectFn = () => {
         try {
             cleanup(effectFn)
             activeEffect = effectFn
+            effectStack.push(activeEffect)
             fn()
         } finally {
             activeEffect = null
@@ -27,7 +29,10 @@ export function effect(fn) {
     }
     //这里为了实现cleanup我们需要反过来知道副作用函数被哪些属性依赖
     effectFn.deps = []
+    effectFn.options = options
     effectFn()
+    effectStack.pop()
+    activeEffect = effectStack[effectStack.length - 1]
     return effectFn
 }
 
@@ -44,7 +49,7 @@ function cleanup(effectFn) {
     effectFn.deps.length = 0
 }
 
-/*触发*/
+/*get操作触发track进行收集*/
 export function track(target, type, key) {
     let depsMap = targetMap.get(target)
     if(!depsMap)
@@ -58,12 +63,20 @@ export function track(target, type, key) {
     }
 }
 
-/*收集*/
+/*set操作触发trigger执行副作用函数*/
 export function trigger(target, type, key ,newv) {
     let depsMap = targetMap.get(target)
     if(!depsMap) return
     let deps = depsMap.get(key)
     if(!deps) return
+    // 防止set delete和add两个操作同时出现，导致set遍历无限执行
     const effectToRun = new Set(deps)
-    effectToRun.forEach(effect => effect())
+    effectToRun.forEach(effect => {
+        if(effect.options.scheduler) {
+            effect.options.scheduler(effect)
+        }
+        else {
+            effect()
+        }
+    })
 }

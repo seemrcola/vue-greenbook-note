@@ -1,4 +1,5 @@
-import { mutableHandlers, shallowHandlers } from './baseHandlers'
+import { mutableHandlers, shallowHandlers } from './baseHandlers.js'
+import { isObject } from "./utils.js";
 
 /**
  * reactiveMap 用于存储已经被代理的对象
@@ -9,19 +10,22 @@ import { mutableHandlers, shallowHandlers } from './baseHandlers'
  */
 
 export const reactiveMap = new WeakMap()
+export const shallowReactiveMap = new WeakMap()
 
 export function reactive(data) {
     return createReactive(data, reactiveMap, mutableHandlers)
 }
 
 export function shallowReactive(data) {
-    return createReactive(data, reactiveMap, shallowHandlers)
+    return createReactive(data, shallowReactiveMap, shallowHandlers)
 }
 
 export function createReactive(target, proxyMap, proxyHandlers) {
     // 如果代理的不是对象，抛出错误提示
-    if(typeof target !== 'object')
-        return console.error('[vue error] reactive only use for object')
+    if(!isObject(target)) {
+        console.warn('[vue warn] reactive only use for object')
+        return target
+    }
     // 查看对象是否已经被代理过
     const proxy = new Proxy(target, proxyHandlers)
     proxyMap.set(target, proxy)

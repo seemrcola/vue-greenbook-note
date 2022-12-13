@@ -1,5 +1,5 @@
 
-import { effect, reactive } from '../index'
+import { effect, reactive, shallowReactive } from '../index'
 import { describe, it, expect, vi } from 'vitest'
 
 describe('响应式测试', () => {
@@ -54,6 +54,56 @@ describe('响应式测试', () => {
         expect(fn).toHaveBeenCalledTimes(3)
         obj.name = 'test'
         expect(fn).toHaveBeenCalledTimes(3)
+    })
+
+    it('test reactive: effect嵌套', () => {
+        /*嵌套渲染是非常常见的，vue模板里面的组件就时常嵌套渲染*/
+        const foo = reactive({ name: 'foo' })
+        const bar = reactive({ name: 'bar' })
+        let name1 , name2
+        effect(
+            () => {
+                effect(() => {
+                    name2 = bar.name
+                })
+                name1 = foo.name
+            }
+        )
+        foo.name = 'ffoo'
+        bar.name = 'bbar'
+        expect(name1).toBe('ffoo')
+        expect(name2).toBe('bbar')
+    })
+
+    it('test reactive: effect浅层与深层', () => {
+        const obj = reactive({ person: {name: 'cola'} })
+        let name
+        effect(() => { name = obj.person.name })
+        obj.person.name = 'seemr'
+        expect(name).toBe('seemr')
+
+        const shallow = shallowReactive({ person: {name: 'cola'} })
+        let leo
+        effect(() => { leo = shallow.person.name })
+        shallow.person.name = 'seemr'
+        expect(leo).toBe('cola')
+    })
+
+    it('test reactive: effect调度', () => {
+        /*我们希望可以自行控制一些调度逻辑*/
+        const obj = reactive({name: 'seemr'})
+        let name
+        effect(
+            () => name = obj.name,
+            {
+                scheduler: (fn) => {
+                    console.log(100)
+                    fn()
+                }
+            }
+        )
+        obj.name = 'xxx'
+        expect(name).toBe('xxx')
     })
 })
 
