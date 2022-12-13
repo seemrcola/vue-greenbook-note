@@ -21,8 +21,14 @@ export function effect(fn, options = {}) {
         try {
             cleanup(effectFn)
             activeEffect = effectFn
+            //fn执行前push
             effectStack.push(activeEffect)
-            fn()
+            let res = fn()
+            //fn执行后pop
+            effectStack.pop()
+            activeEffect = effectStack[effectStack.length - 1]
+
+            return res
         } finally {
             activeEffect = null
         }
@@ -30,9 +36,9 @@ export function effect(fn, options = {}) {
     //这里为了实现cleanup我们需要反过来知道副作用函数被哪些属性依赖
     effectFn.deps = []
     effectFn.options = options
-    effectFn()
-    effectStack.pop()
-    activeEffect = effectStack[effectStack.length - 1]
+    if(!options.lazy) {
+        effectFn()
+    }
     return effectFn
 }
 

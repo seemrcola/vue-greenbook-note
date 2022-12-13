@@ -18,7 +18,7 @@ Reflect.get(obj, 'name')
 ```
 这两个操作等价。
 那么既然操作等价，我们还有没有必要将reactive函数中的直接读取优化成Reflect读取呢。是有必要的。  
-见：__test__/reactive.test.ts
+见：__test__/reactive.test.js
 
 原因分析：  
 我们在reactive函数的代码中，可以看到，我们返回得是 target[key],这个target[key]中的**target**实际上值的是

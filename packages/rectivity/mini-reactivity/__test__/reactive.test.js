@@ -1,5 +1,5 @@
 
-import { effect, reactive, shallowReactive } from '../index'
+import { effect, reactive, shallowReactive } from '../index.js'
 import { describe, it, expect, vi } from 'vitest'
 
 describe('响应式测试', () => {
@@ -19,11 +19,9 @@ describe('响应式测试', () => {
 
     it('test reactive: 添加不存在的属性测试', () => {
         /*基本测试测试用例*/
-        let myname:string | undefined
-        let myage: number = 0
-
+        let myname
+        let myage
         let proxyData = reactive({name: 'seemr'})
-
         effect(
             () => {
                 myname = proxyData.name
